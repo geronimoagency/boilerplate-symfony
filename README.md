@@ -31,3 +31,7 @@ make help :
  grum:            Run grumphp
  fix:             Launch php-cs-fixer on src/
 ```
+
+### Technical test
+- [French version](docs/technical_test_back_fr.md)
+- [English version](docs/technical_test_back_en.md)
