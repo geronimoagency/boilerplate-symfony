@@ -1,4 +1,4 @@
-version: '2.1'
+version: '2.4'
 
 services:
     php:
@@ -7,27 +7,17 @@ services:
         env_file:
             ./.env
         ports:
-            - "9000:9000"
+            - '9000:9000'
         volumes:
             - ./:/var/www/current
-        links:
-            - maildev:mail.server
 
     nginx:
         build:
             context: ./dockers/nginx/
         ports:
-            - "80:80"
+            - '80:80'
         volumes_from:
             - php
-        volumes:
-            - ./var/log/nginx/:/var/log/nginx
-
-    maildev:
-        image: djfarrelly/maildev
-        ports:
-            - "1080:80"
-            - "25"
 
     sqlserver:
         image: mysql:5.7.22
@@ -37,18 +27,27 @@ services:
             MYSQL_PASSWORD: ${DATABASE_PASSWORD}
             MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
         ports:
-            - "3306"
+            - '3306'
 
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         environment:
             PMA_ARBITRARY: 1
-            PMA_HOST: sqlserver
-            PMA_PORT: 3306
+            PMA_HOST: ${DATABASE_HOST}
+            PMA_PORT: ${DATABASE_PORT}
             MYSQL_USER: ${DATABASE_USER}
             MYSQL_PASSWORD: ${DATABASE_PASSWORD}
             MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
         ports:
-            - "3300:80"
+            - '3300:80'
         links:
             - sqlserver:data
+        depends_on:
+            - sqlserver
+
+    build:
+        build:
+            context: ./dockers/build
+        volumes_from:
+            - php
+        tty: true

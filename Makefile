@@ -5,6 +5,7 @@
 CONSOLE=php bin/console
 COMPOSER=php composer.phar
 PHP_HOST=docker-compose exec --user 33 php
+BUILD_HOST=docker-compose exec build
 
 # Variables
 ENV=$(shell $(PHP_HOST) printenv APP_ENV)
@@ -42,9 +43,13 @@ start:
 stop:
 	docker-compose stop
 
-## Clean symfony environment
-clean:
-	$(PHP_HOST) $(CONSOLE) cache:clear
+## Remove docker containers
+CONTAINERS=$(shell docker ps -a -q)
+VOLUMES=$(shell docker volume ls -qf dangling=true)
+destroy:
+	make stop
+	docker rm $(CONTAINERS) 2>/dev/null; true
+	docker volume rm $(VOLUMES) 2>/dev/null; true
 
 
 ############
@@ -69,9 +74,9 @@ db@fixtures:
 ## Install project dependencies
 install:
 	# Npm depencies
-	yarn install
+	$(BUILD_HOST) yarn install
 	# Composer
-	$(COMPOSER) install --verbose --optimize-autoloader
+	$(BUILD_HOST) $(COMPOSER) install --verbose --optimize-autoloader
 
 ## Install project dependencies for prod (only)
 install@prod: export SYMFONY_ENV = prod
@@ -88,7 +93,7 @@ install@prod:
 #########
 ## Build the project
 build:
-	yarn run encore dev
+	$(BUILD_HOST) yarn run encore dev
 
 ## Build the project for prod (only)
 build@prod:
